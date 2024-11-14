@@ -8,7 +8,7 @@ const { URL } = require("url");
 puppeteer.use(StealthPlugin());
 
 const app = express();
-const PORT = 5000;
+const PORT = 6000;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -45,17 +45,23 @@ const scrapeYouTube = async (url) => {
   await page.waitForSelector("#text-container", { timeout: 60000 });
 
   return page.evaluate(() => {
-    const getText = (selector) => document.querySelector(selector)?.textContent.trim();
+    const getText = (selector) =>
+      document.querySelector(selector)?.textContent.trim();
+
     return {
       title: getText("#title h1 yt-formatted-string"),
       views: getText("#info span"),
+      date: document.querySelector("#info-strings")?.textContent.trim(),
       likes: getText('button[aria-label^="like this video"]'),
       description: getText("#attributed-snippet-text"),
       channelName: getText("#text-container yt-formatted-string"),
+      comments: getText("#contextual-info"),
       subscribers: getText("#owner-sub-count"),
     };
   });
 };
+
+//images data-e2e="browse-user-avatar"
 
 // Common function to scrape TikTok video metadata
 const scrapeTikTok = async (url) => {
@@ -63,17 +69,27 @@ const scrapeTikTok = async (url) => {
 
   // Wait for elements to load
   await page.waitForSelector('meta[property="og:url"]', { timeout: 60000 });
-  await page.waitForSelector('strong[data-e2e="share-count"]', { timeout: 60000 });
+  await page.waitForSelector('strong[data-e2e="share-count"]', {
+    timeout: 60000,
+  });
 
   return page.evaluate(() => {
-    const getText = (selector) => document.querySelector(selector)?.innerText || "N/A";
+    const getText = (selector) =>
+      document.querySelector(selector)?.innerText || "N/A";
     return {
-      views: getText('strong[data-e2e="video-views"]'),
+      // views: getText('strong[data-e2e="video-views"]'),
       likes: getText('strong[data-e2e="like-count"]'),
       comments: getText('strong[data-e2e="comment-count"]'),
+      description: getText('h1[data-e2e="browse-video-desc"]'),
       shares: getText('strong[data-e2e="share-count"]'),
+      bookmark: getText('strong[data-e2e="undefined-count"]'),
       channelName: getText('span[data-e2e="browse-username"]'),
-      videoUrl: document.querySelector('meta[property="og:url"]')?.content || "Not Available",
+      videoUrl:
+        document.querySelector('meta[property="og:url"]')?.content ||
+        "Not Available",
+      thumbnail: getThumbnail(),
+
+      // thumbnail:document.querySelector('.e1vl87hj1')
     };
   });
 };
@@ -82,7 +98,9 @@ app.get("/scrape", async (req, res) => {
   const { url, platform } = req.query;
 
   if (!url || !platform) {
-    return res.status(400).json({ error: "Please provide a valid URL and platform." });
+    return res
+      .status(400)
+      .json({ error: "Please provide a valid URL and platform." });
   }
 
   try {
@@ -98,7 +116,7 @@ app.get("/scrape", async (req, res) => {
       throw new Error("Unsupported platform.");
     }
 
-    videoData.videoUrl = url;
+    // videoData.videoUrl = url;
     res.json({ videoData, message: "Successfully retrieved video data" });
   } catch (error) {
     console.error("Error retrieving video metadata:", error);
@@ -111,3 +129,5 @@ app.get("/scrape", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+
