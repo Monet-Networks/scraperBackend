@@ -8,7 +8,7 @@ const { URL } = require("url");
 puppeteer.use(StealthPlugin());
 
 const app = express();
-const PORT = 6000;
+const PORT = 8000;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -76,6 +76,7 @@ const scrapeTikTok = async (url) => {
   return page.evaluate(() => {
     const getText = (selector) =>
       document.querySelector(selector)?.innerText || "N/A";
+    const videoEle = document.querySelector('video')
     return {
       // views: getText('strong[data-e2e="video-views"]'),
       likes: getText('strong[data-e2e="like-count"]'),
@@ -84,10 +85,11 @@ const scrapeTikTok = async (url) => {
       shares: getText('strong[data-e2e="share-count"]'),
       bookmark: getText('strong[data-e2e="undefined-count"]'),
       channelName: getText('span[data-e2e="browse-username"]'),
+      duration: videoEle.duration || 'N/A',
       videoUrl:
         document.querySelector('meta[property="og:url"]')?.content ||
         "Not Available",
-      thumbnail: getThumbnail(),
+      // thumbnail: getThumbnail(),
 
       // thumbnail:document.querySelector('.e1vl87hj1')
     };
@@ -96,7 +98,7 @@ const scrapeTikTok = async (url) => {
 
 app.get("/scrape", async (req, res) => {
   const { url, platform } = req.query;
-
+  const id = url.substring(url.search('video/')+6)
   if (!url || !platform) {
     return res
       .status(400)
@@ -117,7 +119,7 @@ app.get("/scrape", async (req, res) => {
     }
 
     // videoData.videoUrl = url;
-    res.json({ videoData, message: "Successfully retrieved video data" });
+    res.json({ videoData,id, message: "Successfully retrieved video data" });
   } catch (error) {
     console.error("Error retrieving video metadata:", error);
     res.status(500).json({ error: "Failed to retrieve video metadata" });
