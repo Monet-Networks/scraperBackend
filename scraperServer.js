@@ -60,6 +60,7 @@ const scrapeYouTube = async (url) => {
     };
   });
 };
+{/* <p class="TUXText TUXText--tiktok-display TUXText--weight-bold ex6bx1a0 css-fl3jcf-StyledTUXText-StyledTimeDisplayText e1vx58lt0" font-size="32" letter-spacing="0" style="color: inherit; font-size: 32px;">00:49 / 01:05</p> */}
 
 //images data-e2e="browse-user-avatar"
 
@@ -69,29 +70,34 @@ const scrapeTikTok = async (url) => {
 
   // Wait for elements to load
   await page.waitForSelector('meta[property="og:url"]', { timeout: 60000 });
+  await page.waitForSelector('meta[property="og:image"]', { timeout: 60000 });
+  await page.waitForSelector('strong[data-e2e="like-count"]');
+  await page.waitForSelector('strong[data-e2e="comment-count"]');
+  await page.waitForSelector('h1[data-e2e="browse-video-desc"]');
   await page.waitForSelector('strong[data-e2e="share-count"]', {
     timeout: 60000,
   });
+  // await page.waitForSelector('meta[data-e2e="og:image"]', {
+  //   timeout: 20000,
+  // });
 
   return page.evaluate(() => {
     const getText = (selector) =>
       document.querySelector(selector)?.innerText || "N/A";
-    const videoEle = document.querySelector('video')
+    const videoEle = document.querySelector('video');
     return {
       // views: getText('strong[data-e2e="video-views"]'),
+      image: document.querySelector('img[loading="lazy"]')?.src||"Not Available",
       likes: getText('strong[data-e2e="like-count"]'),
       comments: getText('strong[data-e2e="comment-count"]'),
       description: getText('h1[data-e2e="browse-video-desc"]'),
       shares: getText('strong[data-e2e="share-count"]'),
       bookmark: getText('strong[data-e2e="undefined-count"]'),
       channelName: getText('span[data-e2e="browse-username"]'),
-      duration: videoEle.duration || 'N/A',
       videoUrl:
-        document.querySelector('meta[property="og:url"]')?.content ||
-        "Not Available",
-      // thumbnail: getThumbnail(),
-
-      // thumbnail:document.querySelector('.e1vl87hj1')
+      document.querySelector('meta[property="og:url"]')?.content ||
+      "Not Available",
+      duration: videoEle.duration || 'N/A',
     };
   });
 };
