@@ -8,7 +8,7 @@ const { URL } = require("url");
 puppeteer.use(StealthPlugin());
 
 const app = express();
-const PORT = 8000;
+const PORT = 6000;
 
 app.use(cors());
 app.use(bodyParser.json());
