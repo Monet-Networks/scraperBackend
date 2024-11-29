@@ -17,7 +17,7 @@ let browser, page;
 
 const launchBrowser = async () => {
   browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
     timeout: 60000,
   });
